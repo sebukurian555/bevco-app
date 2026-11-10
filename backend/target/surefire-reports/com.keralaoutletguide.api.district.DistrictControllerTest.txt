@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.keralaoutletguide.api.district.DistrictControllerTest
+-------------------------------------------------------------------------------
+Tests run: 3, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.200 s -- in com.keralaoutletguide.api.district.DistrictControllerTest

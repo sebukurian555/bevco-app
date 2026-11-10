@@ -1,0 +1,7 @@
+com\keralaoutletguide\api\district\DistrictController.class
+com\keralaoutletguide\api\district\DistrictService.class
+com\keralaoutletguide\api\error\ApiExceptionHandler$ApiError.class
+com\keralaoutletguide\api\KeralaOutletGuideApplication.class
+com\keralaoutletguide\api\district\DistrictsResponse.class
+com\keralaoutletguide\api\district\District.class
+com\keralaoutletguide\api\error\ApiExceptionHandler.class

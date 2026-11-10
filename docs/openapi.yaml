@@ -1,0 +1,273 @@
+openapi: 3.1.0
+info:
+  title: Kerala Outlet Guide API
+  version: 0.1.0
+  description: Study project contract. Check x-implementation-status for each operation.
+servers:
+  - url: http://127.0.0.1:8080
+    description: Local development server
+paths:
+  /api/v1/districts:
+    get:
+      operationId: listDistricts
+      summary: List the 14 Kerala districts alphabetically
+      x-implementation-status: implemented
+      responses:
+        '200':
+          description: District catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [districts]
+                properties:
+                  districts:
+                    type: array
+                    minItems: 14
+                    maxItems: 14
+                    items:
+                      $ref: '#/components/schemas/District'
+  /api/v1/districts/{districtId}/outlets:
+    get:
+      operationId: listDistrictOutlets
+      summary: List outlets and directions for a district
+      x-implementation-status: planned
+      parameters:
+        - name: districtId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: ernakulam
+      responses:
+        '200':
+          description: Outlets sorted by name and ID, with an empty list if there are no entries
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [districtId, outlets]
+                properties:
+                  districtId:
+                    type: string
+                  outlets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Outlet'
+        '404':
+          description: DISTRICT_NOT_FOUND
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/outlets/nearest:
+    post:
+      operationId: findNearestOutlet
+      summary: Find the nearest outlet with verified coordinates by straight-line distance
+      x-implementation-status: planned
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Location'
+      responses:
+        '200':
+          description: Nearest verified outlet, straight-line distance, and catalog coverage
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [outlet, distanceKm, coverage]
+                properties:
+                  outlet:
+                    allOf:
+                      - $ref: '#/components/schemas/Outlet'
+                      - $ref: '#/components/schemas/Location'
+                  distanceKm:
+                    type: number
+                    minimum: 0
+                  coverage:
+                    type: object
+                    required: [verifiedOutlets, catalogOutlets]
+                    properties:
+                      verifiedOutlets:
+                        type: integer
+                        minimum: 1
+                      catalogOutlets:
+                        type: integer
+                        minimum: 1
+        '400':
+          description: INVALID_LOCATION
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: OUTLET_COORDINATES_UNAVAILABLE
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /api/v1/prices:
+    get:
+      operationId: listPrices
+      summary: View validated retail prices or the official price list link
+      x-implementation-status: planned
+      parameters:
+        - name: q
+          in: query
+          description: Optional case-insensitive brand or product name search
+          schema:
+            type: string
+            maxLength: 100
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 25
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Price snapshot or source-only response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PriceCatalog'
+        '400':
+          description: INVALID_QUERY
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+components:
+  schemas:
+    District:
+      type: object
+      required: [id, name]
+      properties:
+        id:
+          type: string
+          pattern: '^[a-z]+$'
+          examples: [ernakulam]
+        name:
+          type: string
+          minLength: 1
+          examples: [Ernakulam]
+    Outlet:
+      type: object
+      required: [id, districtId, name, address, directionsUrl]
+      dependentRequired:
+        latitude: [longitude]
+        longitude: [latitude]
+      properties:
+        id:
+          type: string
+        districtId:
+          type: string
+        name:
+          type: string
+        address:
+          type: string
+        directionsUrl:
+          type: string
+          format: uri
+        latitude:
+          $ref: '#/components/schemas/Latitude'
+        longitude:
+          $ref: '#/components/schemas/Longitude'
+    Location:
+      type: object
+      required: [latitude, longitude]
+      properties:
+        latitude:
+          $ref: '#/components/schemas/Latitude'
+        longitude:
+          $ref: '#/components/schemas/Longitude'
+    Latitude:
+      type: number
+      minimum: -90
+      maximum: 90
+    Longitude:
+      type: number
+      minimum: -180
+      maximum: 180
+    PriceCatalog:
+      type: object
+      required: [catalogStatus, items, total, sources, officialUrl]
+      properties:
+        catalogStatus:
+          type: string
+          enum: [READY, SOURCE_ONLY]
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceItem'
+        total:
+          type: integer
+          minimum: 0
+        sources:
+          type: array
+          items:
+            $ref: '#/components/schemas/PriceSource'
+        officialUrl:
+          type: string
+          format: uri
+          examples: ['https://bevco.in/price-list-2/']
+      allOf:
+        - if:
+            properties:
+              catalogStatus:
+                const: SOURCE_ONLY
+          then:
+            properties:
+              items:
+                maxItems: 0
+              total:
+                const: 0
+    PriceItem:
+      type: object
+      required: [itemCode, name, sizeMl, retailPricePaise, sourceId]
+      properties:
+        itemCode:
+          type: string
+        name:
+          type: string
+        sizeMl:
+          type: integer
+          minimum: 1
+        retailPricePaise:
+          type: integer
+          minimum: 0
+        sourceId:
+          type: string
+    PriceSource:
+      type: object
+      required: [id, url, effectiveOn]
+      properties:
+        id:
+          type: string
+        url:
+          type: string
+          format: uri
+        effectiveOn:
+          type: string
+          format: date
+        publishedOn:
+          type: string
+          format: date
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+        message:
+          type: string

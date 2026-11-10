@@ -1,0 +1,18 @@
+{
+  "districts": [
+    { "id": "alappuzha", "name": "Alappuzha" },
+    { "id": "ernakulam", "name": "Ernakulam" },
+    { "id": "idukki", "name": "Idukki" },
+    { "id": "kannur", "name": "Kannur" },
+    { "id": "kasaragod", "name": "Kasaragod" },
+    { "id": "kollam", "name": "Kollam" },
+    { "id": "kottayam", "name": "Kottayam" },
+    { "id": "kozhikode", "name": "Kozhikode" },
+    { "id": "malappuram", "name": "Malappuram" },
+    { "id": "palakkad", "name": "Palakkad" },
+    { "id": "pathanamthitta", "name": "Pathanamthitta" },
+    { "id": "thiruvananthapuram", "name": "Thiruvananthapuram" },
+    { "id": "thrissur", "name": "Thrissur" },
+    { "id": "wayanad", "name": "Wayanad" }
+  ]
+}
